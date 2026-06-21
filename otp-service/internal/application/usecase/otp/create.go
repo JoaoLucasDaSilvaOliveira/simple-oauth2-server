@@ -28,8 +28,6 @@ func (uc *CreateUsecase) Execute (cmd command.CreateCommand) (*dto.CreateOtp, *d
 		return nil, &dto.ErrorOtp{Message: err.Error()}
 	}
 
-	//TODO: cria um event: entity.event.SendOtpByEmail(otpWord, email)
-
 	return &dto.CreateOtp{
 		OtpWord: otpObject.GetOtpWord(uc.serverSecretKey),
 		Expiration: otpObject.GetExpiration(),
