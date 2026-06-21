@@ -8,12 +8,12 @@ import (
 	"oauth2/otp/internal/domain/valueobject"
 )
 
-type AllowedDigits int
+type AllowedAmountOfDigits int
 
 const (
-	ThreeDigits AllowedDigits = 3
-	FiveDigits  AllowedDigits = 5 //default
-	SixDigits   AllowedDigits = 6
+	ThreeDigits AllowedAmountOfDigits = 3
+	FiveDigits  AllowedAmountOfDigits = 5 //default
+	SixDigits   AllowedAmountOfDigits = 6
 )
 
 type OtpObject struct {
@@ -53,7 +53,7 @@ func GenerateOtp(email Email, expiration int64) (*OtpObject, error) {
 	return GenerateOtpWithXDigits(email, expiration, FiveDigits)
 }
 
-func GenerateOtpWithXDigits(email Email, expiration int64, xDigits AllowedDigits) (*OtpObject, error) {
+func GenerateOtpWithXDigits(email Email, expiration int64, xDigits AllowedAmountOfDigits) (*OtpObject, error) {
 	limit := int64(math.Pow(10, float64(xDigits)))
 	limitDigits := big.NewInt(limit)
 	otpNumbers, err := rand.Int(rand.Reader, limitDigits)

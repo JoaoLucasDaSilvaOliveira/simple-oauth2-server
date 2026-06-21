@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 )
 
-func EncodeUsingHMAC(otpPhrase string, salt string) string {
+func EncodeUsingHMAC(phrase string, salt string) string {
 	h := hmac.New(sha256.New, []byte(salt))
 
-	h.Write([]byte(otpPhrase))
+	h.Write([]byte(phrase))
 
 	return hex.EncodeToString(h.Sum(nil))
 }
