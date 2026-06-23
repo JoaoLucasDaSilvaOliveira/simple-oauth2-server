@@ -18,7 +18,7 @@ func (uc *ValidateUsecase) Execute(cmd command.ValidateCommand) (*dto.ValidEmail
 	if err != nil {
 		return nil, &dto.InvalidEmail{
 			ClientID: cmd.ClientID,
-			Email: entity.Email(cmd.RawEmail),
+			Email: cmd.RawEmail,
 			Message: err.Error(),
 		}
 	}

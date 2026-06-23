@@ -12,10 +12,13 @@ type CreateWithXDigitsUsecase struct {
 	serverSecretKey string
 }
 
-func (uc *CreateWithXDigitsUsecase) Execute (cmd *command.CreateWithXDigitsCommand) (*dto.CreateOtp, *dto.ErrorOtp) {
+func (uc *CreateWithXDigitsUsecase) Execute(cmd *command.CreateWithXDigitsCommand) (*dto.CreatedOtp, *dto.ErrorOnCreateOtp) {
 	//validate if hash was made by this app
 	if !utils.Validate(cmd.Hash, cmd.Email.String(), uc.serverSecretKey) {
-		return nil, &dto.ErrorOtp{Message: "email não validado por essa aplicação, por favor valide o email primeiro"}
+		return nil, &dto.ErrorOnCreateOtp{
+			ClientID: cmd.ClientID,
+			Message:  "email não validado por essa aplicação, por favor valide o email primeiro",
+		}
 	}
 
 	//get default otp expiration time
@@ -23,13 +26,20 @@ func (uc *CreateWithXDigitsUsecase) Execute (cmd *command.CreateWithXDigitsComma
 
 	//generate otp object
 	otpObject, err := entity.GenerateOtpWithXDigits(cmd.Email, expiration, cmd.XDigits)
-	
+
 	if err != nil {
-		return nil, &dto.ErrorOtp{Message: err.Error()}
+		return nil, &dto.ErrorOnCreateOtp{
+			ClientID: cmd.ClientID,
+			Message:  err.Error(),
+		}
 	}
 
-	return &dto.CreateOtp{
-		OtpWord: otpObject.GetOtpWord(uc.serverSecretKey),
+	//TODO: cria um event: entity.event.SendOtpByEmail(otpWord, email)
+
+	return &dto.CreatedOtp{
+		OtpWord:    otpObject.GetOtpWord(uc.serverSecretKey),
+		ClientID:   cmd.ClientID,
 		Expiration: otpObject.GetExpiration(),
+		OtpCode:    otpObject.GetOtpDigits(),
 	}, nil
 }
