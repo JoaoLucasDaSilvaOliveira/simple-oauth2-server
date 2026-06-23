@@ -23,8 +23,8 @@ Copie o arquivo `.env.example` para `.env`.
 Exemplo:
 
 ```env
-PORT=4000
-JWT_SECRET=chave-secreta-para-o-trabalho
+PORT
+JWT_SECRET
 ```
 
 ## Como rodar
