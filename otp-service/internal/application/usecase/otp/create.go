@@ -12,7 +12,7 @@ type CreateUsecase struct {
 	serverSecretKey string
 }
 
-func (uc *CreateUsecase) Execute (cmd command.CreateCommand) (*dto.CreateOtp, *dto.ErrorOtp) {
+func (uc *CreateUsecase) Execute (cmd *command.CreateCommand) (*dto.CreateOtp, *dto.ErrorOtp) {
 	//validate if hash was made by this app
 	if !utils.Validate(cmd.Hash, cmd.Email.String(), uc.serverSecretKey) {
 		return nil, &dto.ErrorOtp{Message: "email não validado por essa aplicação, por favor valide o email primeiro"}

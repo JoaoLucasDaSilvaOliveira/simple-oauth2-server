@@ -6,12 +6,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type ValidatedEmail struct {
+type ValidEmail struct {
 	ClientID uuid.UUID
-	Email entity.Email
-	Hash string
+	Email    entity.Email
+	Hash     string
 }
 
-type InvalidatedEmail struct {
-	Message string
+type InvalidEmail struct {
+	ClientID uuid.UUID
+	Email    entity.Email
+	Message  string
 }

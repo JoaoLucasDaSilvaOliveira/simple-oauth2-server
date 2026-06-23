@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func Validate(salt string, email string, otpInput string, expiration int64, hashOriginal string) (bool, error) {
+func ValidateOtp(salt string, email string, otpInput string, expiration int64, hashOriginal string) (bool, error) {
 	//verify if isn't expired yet
 	if time.Now().Unix() > expiration {
 		return false, errors.New("token otp expirado")
