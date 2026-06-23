@@ -2,7 +2,6 @@ package rabbitmq
 
 import (
 	"fmt"
-
 	rbmq "github.com/rabbitmq/amqp091-go"
 )
 

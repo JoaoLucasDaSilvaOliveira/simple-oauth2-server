@@ -26,7 +26,7 @@ In this current project was developed a authentication server for third-party se
 - routing keys: email
   - validate -> email.validate.queue
   - validate.result -> email.validate.result.queue
-                          \-> email.send.email_notification.queue
+  - send.email_notification -> email.send.email_notification.queue
 
 - routing keys: otp
   - create -> otp.create.queue

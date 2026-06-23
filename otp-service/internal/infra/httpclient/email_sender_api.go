@@ -1,4 +1,4 @@
-package event
+package httpclient
 
 import (
 	"bytes"
@@ -6,30 +6,27 @@ import (
 	"fmt"
 	"net/http"
 	"oauth2/otp/internal/domain/entity"
+	"oauth2/otp/internal/infra/config"
 	"time"
 )
 
-var (
-	API_URL string
-	API_KEY string
-)
-
-func Initialize(apiUrl string, apiKey string) {
-	API_KEY = apiKey
-	API_URL = apiUrl
+type EmailSenderObject struct {
+	cfg *config.EmailSenderApi
 }
 
-type SendData struct {
+func NewEmailSenderObject(cfg *config.EmailSenderApi) *EmailSenderObject {
+	return &EmailSenderObject{
+		cfg: cfg,
+	}
+}
+
+type data struct {
 	Email   entity.Email `json:"email"`
 	OtpCode string       `json:"code"`
 }
 
-func SendOtpByEmail(emailTosend entity.Email, otpCode string) error {
-	if API_KEY == "" || API_URL == "" {
-		return fmt.Errorf("api_key ou api_url não inicializadas, é preico inicializar os valores")
-	}
-
-	data := SendData{
+func (emso *EmailSenderObject)SendOtpByEmail(emailTosend entity.Email, otpCode string) error {
+	data := data{
 		Email:   emailTosend,
 		OtpCode: otpCode,
 	}
@@ -43,14 +40,14 @@ func SendOtpByEmail(emailTosend entity.Email, otpCode string) error {
 		Timeout: 5 * time.Second,
 	}
 
-	req, err := http.NewRequest("POST", API_URL, bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequest("POST", emso.cfg.ApiUrl, bytes.NewBuffer(jsonPayload))
 
 	if err != nil {
 		return fmt.Errorf("falha ao criar requisição para api: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("API_KEY", API_KEY)
+	req.Header.Set("API_KEY", emso.cfg.ApiKey)
 
 	resp, err := client.Do(req)
 

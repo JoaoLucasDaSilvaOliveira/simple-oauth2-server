@@ -14,6 +14,6 @@ type ValidEmail struct {
 
 type InvalidEmail struct {
 	ClientID uuid.UUID
-	Email    entity.Email
+	Email    string
 	Message  string
 }

@@ -2,8 +2,8 @@ package rabbitmq
 
 import (
 	"fmt"
-	"oauth2/otp/internal/infra/config"
 	rbmq "github.com/rabbitmq/amqp091-go"
+	"oauth2/otp/internal/infra/config"
 )
 
 type routingKeyRoutingType string
@@ -41,6 +41,7 @@ var (
 	routingKeys = []string{
 		"validate",
 		"validate.result",
+		"send.email_notification",
 		"dlq",
 		"create",
 		"create.withXdigits",
@@ -55,7 +56,12 @@ var (
 		{
 			exchange:   "email",
 			routingKey: "validate.result",
-			queues:     []string{"email.validate.result.queue", "email.send.email_notification.queue"},
+			queues:     []string{"email.validate.result.queue"},
+		},
+		{
+			exchange:   "email",
+			routingKey: "send.email_notification",
+			queues:     []string{"email.send.email_notification.queue"},
 		},
 		{
 			exchange:   "email.dlx",
@@ -104,7 +110,7 @@ func OpenChannel(conn *rbmq.Connection) (*rbmq.Channel, error) {
 	return ch, nil
 }
 
-func StartConnection (rmbqUrl string) (*rbmq.Connection, error) {
+func StartConnection(rmbqUrl string) (*rbmq.Connection, error) {
 	conn, err := rbmq.Dial(rmbqUrl)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao conectar no RabbitMQ: %w", err)
@@ -119,7 +125,7 @@ func InitializeRBMQInfra(cfg *config.RabbitMQConfig) (*rbmq.Connection, error) {
 	if err != nil {
 		return nil, fmt.Errorf("erro ao conectar no RabbitMQ: %w", err)
 	}
-	
+
 	// create a channel for comunication inside the existance conection
 	ch, err := OpenChannel(conn)
 	if err != nil {
@@ -138,7 +144,7 @@ func InitializeRBMQInfra(cfg *config.RabbitMQConfig) (*rbmq.Connection, error) {
 	if err := declareBinds(ch); err != nil {
 		return nil, err
 	}
-	
+
 	return conn, nil
 }
 

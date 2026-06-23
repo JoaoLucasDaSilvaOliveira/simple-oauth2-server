@@ -37,5 +37,6 @@ func (uc *CreateUsecase) Execute (cmd *command.CreateCommand) (*dto.CreatedOtp, 
 		ClientID: cmd.ClientID,
 		OtpWord: otpObject.GetOtpWord(uc.serverSecretKey),
 		Expiration: otpObject.GetExpiration(),
+		OtpCode: otpObject.GetOtpDigits(),
 	}, nil
 }
