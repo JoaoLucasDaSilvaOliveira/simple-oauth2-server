@@ -11,18 +11,22 @@ type ValidateUsecase struct {
 	serverSecretKey string
 }
 
-func (uc *ValidateUsecase) Execute(cmd command.ValidateCommand) (*dto.ValidatedEmail, *dto.InvalidatedEmail) {
+func (uc *ValidateUsecase) Execute(cmd command.ValidateCommand) (*dto.ValidEmail, *dto.InvalidEmail) {
 	//validate email
 	validatedEmail, err := entity.NewEmail(cmd.RawEmail)
 
 	if err != nil {
-		return nil, &dto.InvalidatedEmail{Message: err.Error()}
+		return nil, &dto.InvalidEmail{
+			ClientID: cmd.ClientID,
+			Email: entity.Email(cmd.RawEmail),
+			Message: err.Error(),
+		}
 	}
 
 	//generate hash to garantee for other usecases that the email was validaded by this application
 	hash := valueobject.EncodeUsingHMAC(validatedEmail.String(), uc.serverSecretKey)
 
-	return &dto.ValidatedEmail{
+	return &dto.ValidEmail{
 		ClientID: cmd.ClientID,
 		Email:    validatedEmail,
 		Hash:     hash,
