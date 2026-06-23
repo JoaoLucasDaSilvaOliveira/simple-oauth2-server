@@ -20,8 +20,9 @@ In this current project was developed a authentication server for third-party se
   - routing keys
     - otp.create
     - otp.create.withXdigits
-    - otp.validateds
-    - otp.invalidateds
+    - otp.validate
+    - otp.valids
+    - otp.invalids
     - otp.dlx
 - email
   - routing keys
