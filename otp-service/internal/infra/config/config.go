@@ -19,7 +19,7 @@ func LoadRBMQConfig() (*RabbitMQConfig, error) {
 	if rbmqUrl == "" {
 		return nil, errors.New("a variavel de ambiente que representa a url do rabbitmq está vazia")
 	}
-	
+
 	cfg := &RabbitMQConfig{
 		Url: rbmqUrl,
 	}
@@ -34,7 +34,7 @@ func LoadEmailSenderApi() (*EmailSenderApi, error) {
 	if apiKey == "" || apiUrl == "" {
 		return nil, errors.New("a variavel de ambiente que representa a url ou a chave da api de email está vazia")
 	}
-	
+
 	cfg := &EmailSenderApi{
 		ApiKey: apiKey,
 		ApiUrl: apiUrl,

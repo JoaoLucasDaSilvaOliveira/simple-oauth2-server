@@ -9,6 +9,12 @@ type Consumer struct {
 	connection *rbmq.Connection
 }
 
+func NewConsumer(connection *rbmq.Connection) *Consumer {
+	return &Consumer{
+		connection: connection,
+	}
+}
+
 func (c *Consumer) Consume(queue string, consumerName string, autoAck bool, handler func(msg rbmq.Delivery)) error {
 	//open channel
 	ch, err := OpenChannel(c.connection)
@@ -27,7 +33,7 @@ func (c *Consumer) Consume(queue string, consumerName string, autoAck bool, hand
 		consumerName,
 		autoAck,
 		false,
-		false, 
+		false,
 		false,
 		nil,
 	)

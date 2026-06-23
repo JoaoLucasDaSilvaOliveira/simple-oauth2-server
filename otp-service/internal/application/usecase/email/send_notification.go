@@ -8,7 +8,14 @@ import (
 
 type SendNotificationUsecase struct {
 	serverSecretKey string
-	sender *httpclient.EmailSenderObject
+	sender          *httpclient.EmailSenderObject
+}
+
+func NewSendNotificationUsecase(serverSecretKey string, sender *httpclient.EmailSenderObject) *SendNotificationUsecase {
+	return &SendNotificationUsecase{
+		serverSecretKey: serverSecretKey,
+		sender:          sender,
+	}
 }
 
 func (uc *SendNotificationUsecase) Execute(cmd command.SendNotification) bool {
@@ -17,7 +24,7 @@ func (uc *SendNotificationUsecase) Execute(cmd command.SendNotification) bool {
 		return false
 	}
 
-	if err := uc.sender.SendOtpByEmail(cmd.EmailToSend, cmd.OtpCode); err !=  nil {
+	if err := uc.sender.SendOtpByEmail(cmd.EmailToSend, cmd.OtpCode); err != nil {
 		return false
 	}
 

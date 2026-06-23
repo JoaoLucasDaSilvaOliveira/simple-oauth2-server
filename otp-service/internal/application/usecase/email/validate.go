@@ -11,6 +11,12 @@ type ValidateUsecase struct {
 	serverSecretKey string
 }
 
+func NewValidateUsecase(serverSecretKey string) *ValidateUsecase {
+	return &ValidateUsecase{
+		serverSecretKey: serverSecretKey,
+	}
+}
+
 func (uc *ValidateUsecase) Execute(cmd command.ValidateCommand) (*dto.ValidEmail, *dto.InvalidEmail) {
 	//validate email
 	validatedEmail, err := entity.NewEmail(cmd.RawEmail)
@@ -18,8 +24,8 @@ func (uc *ValidateUsecase) Execute(cmd command.ValidateCommand) (*dto.ValidEmail
 	if err != nil {
 		return nil, &dto.InvalidEmail{
 			ClientID: cmd.ClientID,
-			Email: cmd.RawEmail,
-			Message: err.Error(),
+			Email:    cmd.RawEmail,
+			Message:  err.Error(),
 		}
 	}
 

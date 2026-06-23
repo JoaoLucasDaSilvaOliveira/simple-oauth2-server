@@ -12,6 +12,12 @@ type CreateWithXDigitsUsecase struct {
 	serverSecretKey string
 }
 
+func NewCreateWithXDigitsUsecase(serverSecretKey string) *CreateWithXDigitsUsecase {
+	return &CreateWithXDigitsUsecase{
+		serverSecretKey: serverSecretKey,
+	}
+}
+
 func (uc *CreateWithXDigitsUsecase) Execute(cmd *command.CreateWithXDigitsCommand) (*dto.CreatedOtp, *dto.ErrorOnCreateOtp) {
 	//validate if hash was made by this app
 	if !utils.Validate(cmd.Hash, cmd.Email.String(), uc.serverSecretKey) {

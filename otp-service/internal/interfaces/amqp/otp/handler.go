@@ -5,6 +5,7 @@ import (
 	command "oauth2/otp/internal/application/command/otp"
 	usecase "oauth2/otp/internal/application/usecase/otp"
 	"oauth2/otp/internal/domain/entity"
+	"oauth2/otp/internal/domain/valueobject"
 	"oauth2/otp/internal/infra/messaging/rabbitmq"
 	emailamqp "oauth2/otp/internal/interfaces/amqp/email"
 
@@ -37,6 +38,13 @@ func (h *Handler) CreateOtp(msg rbmq.Delivery) {
 		return
 	}
 
+	requestID, err := valueobject.ValidateUUID(request.RequestID)
+	if err != nil {
+		//no chance to return something usefull, goes to dlq
+		msg.Nack(false, false)
+		return
+	}
+
 	//parse email
 	parsedEmail, err := entity.NewEmail(request.ValidatedEmail)
 	if err != nil {
@@ -47,7 +55,7 @@ func (h *Handler) CreateOtp(msg rbmq.Delivery) {
 
 	//turn request into a command
 	cmd := command.CreateCommand{
-		ClientID: request.RequestID,
+		ClientID: requestID,
 		Email:    parsedEmail,
 		Hash:     request.Hash,
 	}
@@ -58,7 +66,7 @@ func (h *Handler) CreateOtp(msg rbmq.Delivery) {
 	if errorOnCreateOtpDTO != nil {
 		//turn result into a response
 		responseFail := CreateOtpResponseError{
-			RequestID:    request.RequestID,
+			RequestID:    requestID,
 			ErrorMessage: errorOnCreateOtpDTO.Message,
 		}
 		//publish errorOnCreateOtpDTO do otp.create.result.queue
@@ -77,7 +85,7 @@ func (h *Handler) CreateOtp(msg rbmq.Delivery) {
 		Expiration: createdOtpDTO.Expiration,
 	}
 
-	if err := h.publishOtpNotification(request.RequestID, parsedEmail, request.Hash, createdOtpDTO.OtpCode); err != nil {
+	if err := h.publishOtpNotification(requestID, parsedEmail, request.Hash, createdOtpDTO.OtpCode); err != nil {
 		msg.Nack(false, true)
 		return
 	}
@@ -100,6 +108,13 @@ func (h *Handler) CreateOtpWithXDigits(msg rbmq.Delivery) {
 		return
 	}
 
+	requestID, err := valueobject.ValidateUUID(request.RequestID)
+	if err != nil {
+		//no chance to return something usefull, goes to dlq
+		msg.Nack(false, false)
+		return
+	}
+
 	//parse email
 	parsedEmail, err := entity.NewEmail(request.ValidatedEmail)
 	if err != nil {
@@ -111,7 +126,7 @@ func (h *Handler) CreateOtpWithXDigits(msg rbmq.Delivery) {
 	xDigits, ok := allowedAmountOfDigits(request.XDigits)
 	if !ok {
 		responseFail := CreateOtpResponseError{
-			RequestID:    request.RequestID,
+			RequestID:    requestID,
 			ErrorMessage: "quantidade de digitos inválida",
 		}
 		if err := h.publisher.Publish("otp", "create.result", responseFail); err != nil {
@@ -124,7 +139,7 @@ func (h *Handler) CreateOtpWithXDigits(msg rbmq.Delivery) {
 
 	//turn request into a command
 	cmd := command.CreateWithXDigitsCommand{
-		ClientID: request.RequestID,
+		ClientID: requestID,
 		Email:    parsedEmail,
 		Hash:     request.Hash,
 		XDigits:  xDigits,
@@ -136,7 +151,7 @@ func (h *Handler) CreateOtpWithXDigits(msg rbmq.Delivery) {
 	if errorOnCreateOtpDTO != nil {
 		//turn result into a response
 		responseFail := CreateOtpResponseError{
-			RequestID:    request.RequestID,
+			RequestID:    requestID,
 			ErrorMessage: errorOnCreateOtpDTO.Message,
 		}
 		//publish errorOnCreateOtpDTO do otp.create.result.queue
@@ -155,7 +170,7 @@ func (h *Handler) CreateOtpWithXDigits(msg rbmq.Delivery) {
 		Expiration: createdOtpDTO.Expiration,
 	}
 
-	if err := h.publishOtpNotification(request.RequestID, parsedEmail, request.Hash, createdOtpDTO.OtpCode); err != nil {
+	if err := h.publishOtpNotification(requestID, parsedEmail, request.Hash, createdOtpDTO.OtpCode); err != nil {
 		msg.Nack(false, true)
 		return
 	}
@@ -178,6 +193,13 @@ func (h *Handler) ValidateOtp(msg rbmq.Delivery) {
 		return
 	}
 
+	requestID, err := valueobject.ValidateUUID(request.RequestID)
+	if err != nil {
+		//no chance to return something usefull, goes to dlq
+		msg.Nack(false, false)
+		return
+	}
+
 	//parse email
 	parsedEmail, err := entity.NewEmail(request.Email)
 	if err != nil {
@@ -188,7 +210,7 @@ func (h *Handler) ValidateOtp(msg rbmq.Delivery) {
 
 	//turn request into a command
 	cmd := command.ValidateOtp{
-		ClientID:        request.RequestID,
+		ClientID:        requestID,
 		Email:           parsedEmail,
 		OtpCode:         request.OtpCode,
 		Expiration:      request.Expiration,
@@ -215,7 +237,7 @@ func (h *Handler) ValidateOtp(msg rbmq.Delivery) {
 
 func (h *Handler) publishOtpNotification(requestID uuid.UUID, email entity.Email, hash string, otpCode string) error {
 	notification := emailamqp.SendNotificationRequest{
-		RequestID: requestID,
+		RequestID: requestID.String(),
 		Email:     email.String(),
 		Hash:      hash,
 		OtpCode:   otpCode,

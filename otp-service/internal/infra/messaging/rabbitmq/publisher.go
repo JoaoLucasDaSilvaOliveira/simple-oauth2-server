@@ -13,6 +13,12 @@ type Publisher struct {
 	connection *rbmq.Connection
 }
 
+func NewPublisher(connection *rbmq.Connection) *Publisher {
+	return &Publisher{
+		connection: connection,
+	}
+}
+
 func (p *Publisher) Publish(exchange string, routingKey string, message any) error {
 	//open channel
 	ch, err := OpenChannel(p.connection)
@@ -34,7 +40,7 @@ func (p *Publisher) Publish(exchange string, routingKey string, message any) err
 
 	pub := rbmq.Publishing{
 		ContentType: "application/json",
-		Body: jsonMsg,
+		Body:        jsonMsg,
 	}
 
 	//publish the message
