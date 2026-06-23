@@ -8,24 +8,35 @@ In this current project was developed a authentication server for third-party se
 #### RabbitMQ (cloudAMQP)
 #### Queues
 | otp | email |
-|:---:| :---:| 
+|:---| :---| 
 | otp.create.queue | email.validate.queue |
-| otp.create.withXdigits.queue | email.valids.queue |
-| otp.create.validated.queue | email.invalids.queue |
-| otp.create.invalidated.queue | email.dlq |
-| otp.create.dlq |
+| otp.create.withXdigits.queue | email.validate.result.queue |
+| otp.create.result.queue | email.send.email_notification.queue |
+| otp.validate.queue | email.dlq |
+| otp.validate.result.queue | |
+| otp.dlq | |
 
 #### Exchanges
 - otp
-  - routing keys
-    - otp.create
-    - otp.create.withXdigits
-    - otp.validateds
-    - otp.invalidateds
-    - otp.dlx
 - email
-  - routing keys
-    - email.validate
-    - email.valids
-    - email.invalids
-    - email.dlx
+- otp.dlx
+- email.dlx
+
+#### Queues and Routing keys
+- routing keys: email
+  - validate -> email.validate.queue
+  - validate.result -> email.validate.result.queue
+                          \-> email.send.email_notification.queue
+
+- routing keys: otp
+  - create -> otp.create.queue
+  - create.withXdigits -> otp.create.withXdigits.queue
+  - create.result -> otp.create.result.queue
+  - validate -> otp.validate.queue
+  - validate.result -> otp.validate.result.queue
+
+#### Dead letter routing
+- email queues use `x-dead-letter-exchange: email.dlx` and `x-dead-letter-routing-key: dlq`
+  - email.dlx + dlq -> email.dlq
+- otp queues use `x-dead-letter-exchange: otp.dlx` and `x-dead-letter-routing-key: dlq`
+  - otp.dlx + dlq -> otp.dlq
