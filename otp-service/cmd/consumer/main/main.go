@@ -36,7 +36,7 @@ func main() {
 	fmt.Println("OTP_EXPIRATION_TIME: " + fmt.Sprintf("%d", otpObject.GetExpiration()))
 
 	//try to validate an otp
-	if _, err := valueobject.Validate(salt, "jlso9866@gmail.com", otpObject.GetOtpDigits(), otpObject.GetExpiration(), otpObject.GetOtpWord(salt)); err != nil {
+	if _, err := valueobject.ValidateOtp(salt, "jlso9866@gmail.com", otpObject.GetOtpDigits(), otpObject.GetExpiration(), otpObject.GetOtpWord(salt)); err != nil {
 		log.Fatal(err)
 	}
 
