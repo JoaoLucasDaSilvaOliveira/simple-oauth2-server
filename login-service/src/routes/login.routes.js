@@ -1,9 +1,14 @@
 const express = require('express');
-const { login } = require('../controllers/login.controller');
+const { createLoginController } = require('../controllers/login.controller');
 
-const router = express.Router();
+function createLoginRoutes(dependencies = {}) {
+  const router = express.Router();
 
-// Single responsibility: expose the login endpoint.
-router.post('/login', login);
+  // Single responsibility: expose the login endpoint.
+  router.post('/login', createLoginController(dependencies));
 
-module.exports = router;
+  return router;
+}
+
+module.exports = createLoginRoutes;
+module.exports.createLoginRoutes = createLoginRoutes;

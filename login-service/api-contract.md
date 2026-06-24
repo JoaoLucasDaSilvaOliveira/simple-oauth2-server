@@ -31,6 +31,10 @@
 }
 ```
 
+#### Comportamento extra
+
+Quando o login do Auth Service e bem-sucedido, o `login-service` tambem dispara o fluxo de OTP no `otp-service` via RabbitMQ. Se esse fluxo falhar por indisponibilidade do broker ou da fila, a requisicao retorna erro em vez de concluir o login.
+
 ## Auth Service esperado
 
 ### `POST /api/auth/login`

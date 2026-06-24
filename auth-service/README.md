@@ -4,7 +4,7 @@ Microsservico simples de autenticacao para um trabalho sobre microsservicos.
 
 Ele faz 3 coisas:
 
-- cadastra usuarios no SQLite;
+- cadastra usuarios em um arquivo JSON local;
 - faz login e gera um token JWT;
 - mostra o usuario autenticado pela rota `/api/auth/me`.
 

@@ -135,6 +135,17 @@ test('passes through a successful Auth Service response', async () => {
           expiresIn: 3600
         }
       })
+    },
+    otpClient: {
+      startLoginOtpFlow: async (email) => {
+        assert.equal(email, 'usuario@email.com');
+
+        return {
+          requestId: 'request-id-123',
+          otpHash: 'otp-hash-123',
+          expiration: 1719160000
+        };
+      }
     }
   });
 
@@ -153,6 +164,43 @@ test('passes through a successful Auth Service response', async () => {
     accessToken: 'token',
     tokenType: 'Bearer',
     expiresIn: 3600
+  });
+});
+
+test('returns 503 when the OTP flow cannot be started after a successful auth login', async () => {
+  const controller = createLoginController({
+    authClient: {
+      login: async () => ({
+        status: 200,
+        data: {
+          accessToken: 'token',
+          tokenType: 'Bearer',
+          expiresIn: 3600
+        }
+      })
+    },
+    otpClient: {
+      startLoginOtpFlow: async () => {
+        const error = new Error('OTP Service indisponivel no momento');
+        error.statusCode = 503;
+        throw error;
+      }
+    }
+  });
+
+  const req = {
+    body: {
+      email: 'usuario@email.com',
+      senha: '123456'
+    }
+  };
+  const res = createMockResponse();
+
+  await controller(req, res);
+
+  assert.equal(res.statusCode, 503);
+  assert.deepEqual(res.payload, {
+    message: 'OTP Service indisponivel no momento'
   });
 });
 

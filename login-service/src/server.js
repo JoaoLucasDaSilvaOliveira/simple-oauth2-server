@@ -1,15 +1,16 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const loginRoutes = require('./routes/login.routes');
 
 dotenv.config();
 
-function createApp() {
+const createLoginRoutes = require('./routes/login.routes');
+
+function createApp(dependencies = {}) {
   const app = express();
 
   app.use(express.json());
 
-  app.use('/api', loginRoutes);
+  app.use('/api', createLoginRoutes(dependencies));
 
   app.use((req, res) => {
     res.status(404).json({
@@ -34,8 +35,8 @@ function createApp() {
   return app;
 }
 
-function startServer(port = process.env.PORT || 3000) {
-  const app = createApp();
+function startServer(port = process.env.PORT || 3000, dependencies = {}) {
+  const app = createApp(dependencies);
 
   return app.listen(port, () => {
     console.log(`login-service running on port ${port}`);

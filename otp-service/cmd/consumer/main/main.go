@@ -12,7 +12,7 @@ import (
 	otpHandlerLib "oauth2/otp/internal/interfaces/amqp/otp"
 	"os"
 	"os/signal"
-	"path"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -161,10 +161,14 @@ func getEnvPath() string {
 		return envPath
 	}
 
-	baseDir, exists := os.LookupEnv("HOME")
-	if !exists {
-		log.Fatal("Erro ao carregar a $HOME")
+	if cwd, err := os.Getwd(); err == nil {
+		return filepath.Join(cwd, ".env")
 	}
 
-	return path.Join(baseDir, "MATERIAS ADS IFRS/5 SEMESTRE/SISTEMAS_DISTRIBUIDOS/OAuth2_Simple_Project/otp-service/.env")
+	if userProfile, exists := os.LookupEnv("USERPROFILE"); exists {
+		return filepath.Join(userProfile, "simple-oauth2-server", "otp-service", ".env")
+	}
+
+	log.Fatal("Erro ao localizar o arquivo .env")
+	return ""
 }

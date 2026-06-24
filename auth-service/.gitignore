@@ -3,6 +3,7 @@ dist
 .env
 data/auth.db
 data/auth.db-journal
+data/auth.json
 data/test-auth.db
 .tmp-server-out.log
 .tmp-server-err.log

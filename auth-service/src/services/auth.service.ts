@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -86,7 +86,7 @@ export async function register(input: Partial<CreateUserInput>) {
   //  Gera o hash da senha antes de salvar no banco.
   const senha_hash = await bcrypt.hash(senha, SALT_ROUNDS);
 
-  //  Salva o usuario no SQLite.
+  //  Salva o usuario no armazenamento local.
   const user = createUser({
     id: uuidv4(),
     nome,

@@ -1,10 +1,13 @@
 import dotenv from "dotenv";
 import Fastify from "fastify";
 import { login, me, register } from "./controllers/auth.controller";
-import "./database";
+import bcrypt from "bcryptjs";
+import { seedMockUsers } from "./database";
 
 // Carrega as variaveis do arquivo .env.
 dotenv.config();
+
+seedMockUsers((value) => bcrypt.hashSync(value, 10));
 
 const app = Fastify();
 

@@ -11,6 +11,7 @@ O objetivo deste servico e ficar entre o cliente e o Auth Service principal.
 - O cliente envia `email` e `senha`
 - O `login-service` valida os campos
 - O `login-service` chama o Auth Service externo
+- Depois de um login bem-sucedido, o `login-service` dispara o fluxo de OTP no `otp-service`
 - O `login-service` devolve o token ou o erro recebido
 
 ## Requisitos
@@ -38,16 +39,18 @@ O servidor sobe na porta definida em `PORT`.
 Copie o arquivo de exemplo para um arquivo `.env`:
 
 ```bash
-PORT=3000
+PORT=0000
 AUTH_SERVICE_URL=http://localhost:4000
-USE_AUTH_MOCK=true
+RABBITMQ_URL=amqps://user:password@host/vhost
+OTP_FLOW_TIMEOUT_MS=5000
 ```
 
 ### Explicacao das variaveis
 
 - `PORT`: porta do `login-service`
 - `AUTH_SERVICE_URL`: endereco do Auth Service real
-- `USE_AUTH_MOCK`: alterna entre mock (`true`) e Auth Service real (`false`)
+- `RABBITMQ_URL`: endereco do RabbitMQ usado para falar com o `otp-service`
+- `OTP_FLOW_TIMEOUT_MS`: tempo maximo, em milissegundos, para concluir o fluxo de OTP apos o login
 
 ## Como testar no Postman, Insomnia ou Thunder Client
 
@@ -69,7 +72,7 @@ USE_AUTH_MOCK=true
 
 ```json
 {
-  "accessToken": "mock_access_token_123",
+  "accessToken": "jwt-gerado-aqui",
   "tokenType": "Bearer",
   "expiresIn": 3600
 }
@@ -83,23 +86,25 @@ USE_AUTH_MOCK=true
 }
 ```
 
-## Modo mock
+## Integracao com o otp-service
 
-O modo mock existe para permitir testes enquanto o Auth Service real ainda nao esta pronto.
+Depois que o Auth Service responde com sucesso, o `login-service` publica as mensagens esperadas pelo `otp-service`:
 
-Quando `USE_AUTH_MOCK=true`:
+1. envia `email.validate` com `request_id` e `email`
+2. aguarda `email.validate.result.queue`
+3. envia `otp.create` com `request_id`, `email` e `hash`
+4. aguarda `otp.create.result.queue`
 
-- `teste@email.com` com `123456` retorna status `200`
-- qualquer outra combinacao retorna status `401`
+Se o fluxo de OTP falhar por indisponibilidade da fila ou do broker, o `login-service` responde com erro e nao conclui o login.
 
 ## Como trocar para o Auth Service real
 
-1. Altere `USE_AUTH_MOCK=false`
-2. Configure `AUTH_SERVICE_URL=http://localhost:4000` ou o endereco real do servico
+1. Configure `AUTH_SERVICE_URL=http://localhost:4000` ou o endereco real do servico
+2. Configure `RABBITMQ_URL=amqps://user:password@host/vhost`
 3. Suba o Auth Service no endpoint esperado `POST /api/auth/login`
 4. Reinicie o `login-service`
 
-Quando o modo real estiver ativo, o `login-service` repassa o status HTTP e o corpo retornados pelo Auth Service.
+O `login-service` repassa o status HTTP e o corpo retornados pelo Auth Service e, quando esse login e bem-sucedido, inicia o fluxo de OTP.
 
 ## Scripts
 

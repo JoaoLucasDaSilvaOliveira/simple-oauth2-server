@@ -1,4 +1,5 @@
-const { defaultAuthClient, createAuthClient } = require('../services/authClient');
+const { defaultAuthClient } = require('../services/authClient');
+const { defaultOtpClient } = require('../services/otpClient');
 
 function isEmpty(value) {
   return typeof value !== 'string' || value.trim() === '';
@@ -6,6 +7,19 @@ function isEmpty(value) {
 
 function createLoginController(dependencies = {}) {
   const authClient = dependencies.authClient || defaultAuthClient;
+  const otpClient = dependencies.otpClient || defaultOtpClient;
+
+  function getErrorStatusCode(error) {
+    if (error && typeof error.statusCode === 'number') {
+      return error.statusCode;
+    }
+
+    if (error && typeof error.status === 'number') {
+      return error.status;
+    }
+
+    return null;
+  }
 
   return async function loginController(req, res) {
     try {
@@ -25,8 +39,13 @@ function createLoginController(dependencies = {}) {
         });
       }
 
+      const normalizedEmail = email.trim().toLowerCase();
+
       // Ask the Auth Service for the token.
-      const authResponse = await authClient.login({ email, senha });
+      const authResponse = await authClient.login({
+        email: normalizedEmail,
+        senha
+      });
 
       if (!authResponse || typeof authResponse.status !== 'number') {
         return res.status(500).json({
@@ -34,11 +53,19 @@ function createLoginController(dependencies = {}) {
         });
       }
 
+      if (authResponse.status >= 400) {
+        return res.status(authResponse.status).json(authResponse.data);
+      }
+
+      await otpClient.startLoginOtpFlow(normalizedEmail);
+
       return res.status(authResponse.status).json(authResponse.data);
     } catch (error) {
-      if (error && error.status === 503) {
-        return res.status(503).json({
-          message: error.message || 'Auth Service indisponivel no momento'
+      const statusCode = getErrorStatusCode(error);
+
+      if (statusCode) {
+        return res.status(statusCode).json({
+          message: error.message || 'Servico indisponivel no momento'
         });
       }
 
