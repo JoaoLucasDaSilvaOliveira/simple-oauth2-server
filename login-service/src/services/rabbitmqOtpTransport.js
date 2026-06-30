@@ -160,6 +160,30 @@ function createRabbitMqOtpTransport(dependencies = {}) {
     }
   }
 
+  async function close() {
+    const currentChannel = channel;
+    const currentConnection = connection;
+
+    try {
+      if (currentChannel && typeof currentChannel.close === 'function') {
+        await currentChannel.close();
+      }
+    } finally {
+      try {
+        if (currentConnection && typeof currentConnection.close === 'function') {
+          await currentConnection.close();
+        }
+      } finally {
+        channel = null;
+        connection = null;
+        topologyPrepared = false;
+        consumersStarted.clear();
+        pendingByQueue.clear();
+        bufferedByQueue.clear();
+      }
+    }
+  }
+
   async function waitForResult(queueName, requestId, timeout = timeoutMs) {
     await connect();
 
@@ -308,7 +332,8 @@ function createRabbitMqOtpTransport(dependencies = {}) {
 
   return {
     publish,
-    waitForResult
+    waitForResult,
+    close
   };
 }
 

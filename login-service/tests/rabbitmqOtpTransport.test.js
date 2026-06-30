@@ -44,11 +44,17 @@ function createFakeAmqpLib() {
         kind: 'ack',
         payload: msg.content.toString('utf8')
       });
+    },
+    close: async () => {
+      calls.push({ kind: 'channel.close' });
     }
   };
 
   const connection = {
-    createChannel: async () => channel
+    createChannel: async () => channel,
+    close: async () => {
+      calls.push({ kind: 'connection.close' });
+    }
   };
 
   return {
@@ -183,6 +189,34 @@ test('waits for the OTP result queue and resolves matching messages', async () =
 
   assert.equal(
     fakeAmqp.calls.some((call) => call.kind === 'ack'),
+    true
+  );
+});
+
+test('closes the RabbitMQ resources when requested', async () => {
+  const fakeAmqp = createFakeAmqpLib();
+  const transport = createRabbitMqOtpTransport({
+    env: {
+      RABBITMQ_URL: 'amqp://example'
+    },
+    amqpLib: fakeAmqp.amqpLib,
+    timeoutMs: 1000
+  });
+
+  await transport.publish('email', 'validate', {
+    request_id: 'request-id-123',
+    email: 'usuario@email.com'
+  });
+
+  await transport.close();
+
+  assert.equal(
+    fakeAmqp.calls.some((call) => call.kind === 'channel.close'),
+    true
+  );
+
+  assert.equal(
+    fakeAmqp.calls.some((call) => call.kind === 'connection.close'),
     true
   );
 });
