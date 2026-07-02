@@ -1,3 +1,4 @@
+const dotenv = require('dotenv');
 const { randomUUID } = require('node:crypto');
 const { createRabbitMqOtpTransport } = require('../src/services/rabbitmqOtpTransport');
 
@@ -71,7 +72,9 @@ async function main() {
   }
 }
 
-if (process.env.NODE_ENV !== 'test') {
+if (require.main === module) {
+  dotenv.config();
+
   main().catch((error) => {
     console.error(error);
     process.exit(1);
